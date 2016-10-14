@@ -26,7 +26,6 @@
 #include "Include/ImageSearch2015/ImageSearch2015.au3" ; <--- https://www.autoitscript.com/forum/topic/148005-imagesearch-usage-explanation/?do=findComment&comment=1263796
 #include "Include/GUI/MainGUI.au3"
 #include "Include/GUI/SettingsGUI.au3"
-#include <FastFind.au3>
 
 Global Const $bTest = False
 Global $Paused = False

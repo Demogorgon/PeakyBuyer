@@ -16,7 +16,7 @@ Func Settings()
 	Local $GUI_FULLSCREEN_BUTTON = $Control_Buttons_2[4]
 	Local $GUI_FSRestore_BUTTON = $Control_Buttons_2[5]
 
-	Local $ListSettings = GUICtrlCreateList("", 10, 60, 85, $GUISize[1] - 400, BitOR($WS_BORDER, $CBS_AUTOHSCROLL), $SS_BLACKRECT)
+	Local $ListSettings = GUICtrlCreateList("", 10, 60, 85, $GUISize[1] - 400, $WS_BORDER, $SS_BLACKRECT)
 	GUICtrlSetData(-1, "Hotkeys|Player list|Other", "Hotkeys")
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
@@ -129,18 +129,26 @@ Func Settings()
 	GUICtrlSetData(-1, "1h|3h|6h|12h|1day|3days")
 	_GUICtrlComboBox_SetCurSel($ComboDuration, 0)
 
-	Local $CheckboxQuickList = _Metro_CreateCheckbox("QuickList", 120, $GUISize[1] - 280, 90, 24)
+	Local $CheckboxQuickList = _Metro_CreateCheckbox("QuickList", 120, $GUISize[1] - 320, 90, 24)
 
-	Local $CheckboxIsSpecial = _Metro_CreateCheckbox("Special", 210, $GUISize[1] - 280, 80, 24)
+	Local $CheckboxIsSpecial = _Metro_CreateCheckbox("Special", 210, $GUISize[1] - 320, 80, 24)
 
-	Local $ListPlayers = GUICtrlCreateList("", 120, 290, 120, $GUISize[1] - 320, BitOR($WS_BORDER, $CBS_AUTOHSCROLL), $SS_BLACKRECT)
+	GUICtrlCreateLabel("Players on list:", 120, $GUISize[1] - 270, 105, 18)
+	_GUICtrlSetFont(-1, 13, 400, 0, "Calibri", 2)
+	GUICtrlSetColor(-1, "0xFFFFFF")
+
+	Local $LabelPlayersCounter = GUICtrlCreateLabel("0", 230, $GUISize[1] - 270, 30, 18)
+	_GUICtrlSetFont(-1, 13, 400, 0, "Calibri", 2)
+	GUICtrlSetColor(-1, "0x76ee00")
+
+	Local $ListPlayers = GUICtrlCreateList("", 120, 290, 150, $GUISize[1] - 320, BitOR($WS_BORDER, $WS_VSCROLL), $SS_BLACKRECT)
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
-	Local $ButtonAddPlayer = _Metro_CreateButton("Add Player", 265, $GUISize[1] - 240, 150, 30)
-	Local $ButtonEditPlayer = _Metro_CreateButton("Edit Price", 265, $GUISize[1] - 150, 150, 30)
-	Local $ButtonRemovePlayer = _Metro_CreateButton("Remove", 265, $GUISize[1] - 110, 150, 30)
-	Local $ButtonRemoveAllPlayers = _Metro_CreateButton("Remove All Players", 265, $GUISize[1] - 70, 150, 30)
+	Local $ButtonAddPlayer = _Metro_CreateButton("Add Player", 295, $GUISize[1] - 240, 150, 30)
+	Local $ButtonEditPlayer = _Metro_CreateButton("Edit Price", 295, $GUISize[1] - 150, 150, 30)
+	Local $ButtonRemovePlayer = _Metro_CreateButton("Remove", 295, $GUISize[1] - 110, 150, 30)
+	Local $ButtonRemoveAllPlayers = _Metro_CreateButton("Remove All Players", 295, $GUISize[1] - 70, 150, 30)
 
 	$ArrEnd[1] = GUICtrlCreateDummy()
 
@@ -170,12 +178,23 @@ Func Settings()
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
+	GUICtrlCreateLabel("Auto Relist:", 120, 135, 135, 18)
+	_GUICtrlSetFont(-1, 13, 400, 0, "Calibri", 2)
+	GUICtrlSetColor(-1, "0xFFFFFF")
+	;GUICtrlSetBkColor(-1, "0x800080") ; Test Size
+
+	Global $SettingsInputAutoRelist = GUICtrlCreateInput("", 285, 137, 145, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL, $ES_NUMBER), $SS_BLACKRECT)
+	_GUICtrlSetFont(-1, 11, 400, 0, "Verdana", 2)
+	GUICtrlSetColor(-1, $FontThemeColor)
+	GUICtrlSetBkColor(-1, "0x3d3d3d")
+	GUICtrlSetColor(-1, "0xFFFFFF")
+
 	$ArrEnd[2] = GUICtrlCreateDummy()
 	#EndRegion SettingsOther
 
 	GUISetState(@SW_SHOW)
 
-	SettingsSwitcher(0, $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers)
+	SettingsSwitcher(0, $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers, $LabelPlayersCounter)
 	LoadSettings()
 	While 1
 		_Metro_HoverCheck_Loop($PeakyBuyerSettingsGUI) ;Add hover check in loop
@@ -193,11 +212,11 @@ Func Settings()
 			Case $GUI_FULLSCREEN_BUTTON, $GUI_FSRestore_BUTTON
 				_Metro_FullscreenToggle($PeakyBuyerSettingsGUI, $Control_Buttons_2)
 			Case $ListSettings
-				SettingsSwitcher(_GUICtrlListBox_GetCurSel($ListSettings), $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers)
+				SettingsSwitcher(_GUICtrlListBox_GetCurSel($ListSettings), $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers, $LabelPlayersCounter)
 			Case $ButtonSaveSettings
 				SaveSettings()
 			Case $ButtonAddPlayer
-				AddPlayerToList(GUICtrlRead($InputPlayerName), GUICtrlRead($InputBuyNowMax), $ListPlayers, GUICtrlRead($ComboPickNumber), _Metro_CheckboxIsChecked($CheckboxIsSpecial), _Metro_CheckboxIsChecked($CheckboxQuickList), GUICtrlRead($InputStartPrice), GUICtrlRead($InputBuyNowPrice), _GUICtrlComboBox_GetCurSel($ComboDuration)+1)
+				AddPlayerToList(GUICtrlRead($InputPlayerName), GUICtrlRead($InputBuyNowMax), $ListPlayers, GUICtrlRead($ComboPickNumber), _Metro_CheckboxIsChecked($CheckboxIsSpecial), _Metro_CheckboxIsChecked($CheckboxQuickList), GUICtrlRead($InputStartPrice), GUICtrlRead($InputBuyNowPrice), _GUICtrlComboBox_GetCurSel($ComboDuration) + 1)
 				GUICtrlSetData($InputPlayerName, "")
 				GUICtrlSetData($InputBuyNowMax, "")
 				_GUICtrlComboBox_SetCurSel($ComboPickNumber, 0)
@@ -205,6 +224,7 @@ Func Settings()
 				GUICtrlSetData($InputBuyNowPrice, "")
 				_GUICtrlComboBox_SetCurSel($ComboDuration, 0)
 				If _Metro_CheckboxIsChecked($CheckboxIsSpecial) Then _Metro_CheckboxUnCheck($CheckboxIsSpecial)
+				CountPlayers($LabelPlayersCounter)
 			Case $CheckboxQuickList
 				If _Metro_CheckboxIsChecked($CheckboxQuickList) Then
 					_Metro_CheckboxUnCheck($CheckboxQuickList)
@@ -228,14 +248,16 @@ Func Settings()
 				If GetPlayerSpecial(_GUICtrlListBox_GetCurSel($ListPlayers)) == "True" Then _Metro_CheckboxCheck($CheckboxIsSpecial)
 				RemovePlayerFromList(_GUICtrlListBox_GetCurSel($ListPlayers))
 				_GUICtrlListBox_DeleteString($ListPlayers, _GUICtrlListBox_GetCurSel($ListPlayers))
+				CountPlayers($LabelPlayersCounter)
 			Case $ButtonRemovePlayer
 				RemovePlayerFromList(_GUICtrlListBox_GetCurSel($ListPlayers))
 				_GUICtrlListBox_DeleteString($ListPlayers, _GUICtrlListBox_GetCurSel($ListPlayers))
+				CountPlayers($LabelPlayersCounter)
 			Case $ButtonRemoveAllPlayers
 				RemoveAllPlayersFromList($ListPlayers)
+				CountPlayers($LabelPlayersCounter)
 		EndSwitch
 	WEnd
-	MsgBox(0, "", "")
 EndFunc   ;==>Settings
 #EndRegion PeakyBuyerSettingsGUI
 
@@ -253,6 +275,7 @@ Func LoadSettings()
 	;Other Section
 	GUICtrlSetData($SettingsInputPeakyBuyerSpeed, IniRead($SettingsFile, "Other", "PeakyBuyerSpeed", "*1"))
 	GUICtrlSetData($SettingsInputMoseMoveSpeed, IniRead($SettingsFile, "Other", "MouseMoveSpeed", "10"))
+	GUICtrlSetData($SettingsInputAutoRelist, IniRead($SettingsFile, "Other", "AutoRelist", "0"))
 EndFunc   ;==>LoadSettings
 
 Func SaveSettings()
@@ -268,11 +291,12 @@ Func SaveSettings()
 	;#Other Section
 	IniWrite($SettingsFile, "Other", "PeakyBuyerSpeed", GUICtrlRead($SettingsInputPeakyBuyerSpeed))
 	IniWrite($SettingsFile, "Other", "MouseMoveSpeed", GUICtrlRead($SettingsInputMoseMoveSpeed))
+	IniWrite($SettingsFile, "Other", "AutoRelist", GUICtrlRead($SettingsInputAutoRelist))
 
 	DoLogs("Settings has been saved.", True)
 EndFunc   ;==>SaveSettings
 
-Func SettingsSwitcher($CurrentSelection, $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers)
+Func SettingsSwitcher($CurrentSelection, $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers, $LabelPlayersCounter)
 	For $i = 0 To UBound($ArrStart) - 1
 		If $i = $CurrentSelection Then
 			For $ii = $ArrStart[$i] To $ArrEnd[$i]
@@ -284,6 +308,7 @@ Func SettingsSwitcher($CurrentSelection, $ArrStart, $ArrEnd, $GroupSettings, $Li
 				Case 1
 					GUICtrlSetData($GroupSettings, "Player list")
 					LoadPlayerList($ListPlayers)
+					CountPlayers($LabelPlayersCounter)
 				Case 2
 					GUICtrlSetData($GroupSettings, "Other")
 				Case Else
@@ -305,9 +330,8 @@ Func LoadPlayerList($List)
 			_GUICtrlListBox_ResetContent($List)
 			For $i = 0 To UBound($CreateArray) - 1
 				$StringSplit = StringSplit($CreateArray[$i], ":")
-				ConsoleWrite($StringSplit[0])
 				If IsArray($StringSplit) And $StringSplit[0] = 8 Then
-					_GUICtrlListBox_AddString($List, $StringSplit[1] & " - " & _AddComa($StringSplit[2]))
+					_GUICtrlListBox_AddString($List, $StringSplit[1] & " - " & _AddComa($StringSplit[2]) & " -> " & _AddComa($StringSplit[7]))
 				Else
 					_GUICtrlListBox_AddString($List, "Invalid player list")
 					Return
@@ -402,6 +426,10 @@ Func GetPlayerDuration($line)
 	$array[8] -= 1
 	Return $array[8]
 EndFunc   ;==>GetPlayerDuration
+
+Func CountPlayers($Label)
+	If FileExists($PlayerListFile) Then GUICtrlSetData($Label, _FileCountLines($PlayerListFile))
+EndFunc   ;==>CountPlayers
 
 Func _AddComa($Var)
 	Dim $t, $final

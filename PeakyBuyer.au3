@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Icon=Iconka.com-Robot-male.ico
 #AutoIt3Wrapper_Outfile_x64=PeakyBuyer.exe
 #AutoIt3Wrapper_Res_Description=PeakyBuyer
-#AutoIt3Wrapper_Res_Fileversion=1.1
+#AutoIt3Wrapper_Res_Fileversion=1.2
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_requestedExecutionLevel=requireAdministrator
@@ -159,8 +159,12 @@ Func WaitForSearchResult()
 	PressSearch()
 	DoLogs("Waiting for search result...")
 	MouseMove($WebAppArea[0] + 480, $WebAppArea[1] + 40, $MouseMovementSpeed)
+
+	Local $exitloop = 0
 	While $iCheckSum = PixelChecksum($WebAppArea[0] + 443, $WebAppArea[1] + 270, $WebAppArea[0] + 526, $WebAppArea[1] + 296)
+		If $exitloop >= 150 Then ExitLoop ; anti stuck
 		Sleep(100)
+		$exitloop += 1
 	WEnd
 EndFunc   ;==>WaitForSearchResult
 
@@ -168,10 +172,13 @@ Func CheckSearchResult()
 	Local $SearchResult = False
 	Local $ImgOk = False
 	Local $ImgBack = False
+	Local $OkTol = 130
 	DoLogs("Checking search result...")
+
+	Local $exitloop = 0
 	While 1
 		Sleep(100)
-		$ImgOk = PeakyBuyerImgSearch("Ok.png", $WebAppArea[0] + 443, $WebAppArea[1] + 270, $WebAppArea[0] + 526, $WebAppArea[1] + 296, 130)
+		$ImgOk = PeakyBuyerImgSearch("Ok.png", $WebAppArea[0] + 443, $WebAppArea[1] + 270, $WebAppArea[0] + 526, $WebAppArea[1] + 296, $OkTol)
 		If IsArray($ImgOk) Then
 			DoLogs("No search results.")
 			WINAPI_MOUSECLICK($ImgOk[0], $ImgOk[1], 1) ;Click on "Ok"
@@ -182,6 +189,10 @@ Func CheckSearchResult()
 			$SearchResult = $ImgBack
 			ExitLoop
 		EndIf
+		If $exitloop >= 100 Then
+			$OkTol += 1
+		EndIf
+		$exitloop += 1
 	WEnd
 	Return $SearchResult
 EndFunc   ;==>CheckSearchResult
@@ -422,7 +433,7 @@ Func SetupWebAppArea()
 			Exit
 		EndIf
 	Else
-		DoLogs("SetupWebAppArea failed. " & $tempArrea[0] & ":" & $tempArrea[1], True)
+		DoLogs("Cannot find SearchButton.", True)
 		PAUSE()
 	EndIf
 EndFunc   ;==>SetupWebAppArea

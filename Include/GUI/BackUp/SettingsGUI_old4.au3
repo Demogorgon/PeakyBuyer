@@ -436,7 +436,7 @@ EndFunc   ;==>AllAvailablePlayerLists
 Func SaveNewList($TempList, $NewList)
 
 	If FileExists($NewList) Then
-		If MsgBox(4, "Save new player list", "Player list with this name (" & $NewList & ") alread exists, do you want to overwrite it?") <> 6 Then Return False
+		If MsgBox(4, "Save new player list", "Player list with this name ("&$NewList&") alread exists, do you want to overwrite it?") <> 6 Then Return False
 	EndIf
 
 	FileCopy($TempList, $NewList, 1)

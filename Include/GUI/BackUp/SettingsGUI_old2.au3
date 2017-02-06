@@ -1,3 +1,6 @@
+#include-once
+#include <Array.au3>
+
 
 #Region PeakyBuyerSettingsGUI
 Func Settings()
@@ -220,7 +223,7 @@ Func Settings()
 				SaveSettings()
 			Case $ButtonManagePlayerList
 				_GUIDisable($PeakyBuyerSettingsGUI, 0, 30)
-				PlayerListDialog($ListPlayers)
+				PlayerListDialog()
 				_GUIDisable($PeakyBuyerSettingsGUI)
 			Case $ButtonAddPlayer
 				AddPlayerToList(GUICtrlRead($InputPlayerName), GUICtrlRead($InputBuyNowMax), $ListPlayers, GUICtrlRead($ComboPickNumber), _Metro_CheckboxIsChecked($CheckboxIsSpecial), _Metro_CheckboxIsChecked($CheckboxQuickList), GUICtrlRead($InputStartPrice), GUICtrlRead($InputBuyNowPrice), _GUICtrlComboBox_GetCurSel($ComboDuration) + 1)
@@ -274,7 +277,6 @@ Func LoadSettings()
 		DoLogs($SettingsFile & " does not exist.", True)
 		Return
 	EndIf
-
 	;#Hotkeys Section
 	GUICtrlSetData($SettingsInputStartHotkey, IniRead($SettingsFile, "Hotkeys", "StartHotkey", "HOME"))
 	GUICtrlSetData($SettingsInputExitHotkey, IniRead($SettingsFile, "Hotkeys", "ExitHotkey", "END"))
@@ -284,7 +286,6 @@ Func LoadSettings()
 	GUICtrlSetData($SettingsInputPeakyBuyerSpeed, IniRead($SettingsFile, "Other", "PeakyBuyerSpeed", "*1"))
 	GUICtrlSetData($SettingsInputMoseMoveSpeed, IniRead($SettingsFile, "Other", "MouseMoveSpeed", "10"))
 	GUICtrlSetData($SettingsInputAutoRelist, IniRead($SettingsFile, "Other", "AutoRelist", "0"))
-
 EndFunc   ;==>LoadSettings
 
 Func SaveSettings()
@@ -373,7 +374,7 @@ Func RemoveAllPlayersFromList($hPlayerList)
 	_GUICtrlListBox_ResetContent($hPlayerList)
 EndFunc   ;==>RemoveAllPlayersFromList
 
-Func PlayerListDialog($PlayerListControlID)
+Func PlayerListDialog()
 	Local $GUISize[2] = [250, 205]
 	Local $GUIPos[2] = [((@DesktopWidth / 2) - ($GUISize[0] / 2)), ((@DesktopHeight / 2) - ($GUISize[1] / 2))] ;Screen Center
 
@@ -383,11 +384,11 @@ Func PlayerListDialog($PlayerListControlID)
 	Local $Control_Buttons_2 = _Metro_AddControlButtons(True, False, False, False) ;CloseBtn = True, MaximizeBtn = True, MinimizeBtn = True, FullscreenBtn = True, MenuBtn = True
 
 	Local $List = GUICtrlCreateList("", 15, 35, 120, 125, $WS_BORDER, $SS_BLACKRECT)
-	GUICtrlSetData(-1, AllAvailablePlayerLists())
+	GUICtrlSetData(-1, LoadDataToList(), "Lista1")
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
-	Local $ListNameInput = GUICtrlCreateInput("Enter list name", 15, 175, 170, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL), $SS_BLACKRECT)
+	Local $ListNameInput = GUICtrlCreateInput("Enter list name.", 15, 175, 170, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL), $SS_BLACKRECT)
 	_GUICtrlSetFont(-1, 11, 400, 0, "Verdana", 2)
 	GUICtrlSetColor(-1, $FontThemeColor)
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
@@ -395,7 +396,6 @@ Func PlayerListDialog($PlayerListControlID)
 
 	Local $Load = _Metro_CreateButton("Load", 140, 35, 85, 30)
 	Local $Save = _Metro_CreateButton("Save", 140, 75, 85, 30)
-	Local $Open = _Metro_CreateButton("Open dir", 140, 115, 85, 30)
 
 	;Set variables for control buttons
 	Local $GUI_CLOSE_BUTTON = $Control_Buttons_2[0]
@@ -410,38 +410,29 @@ Func PlayerListDialog($PlayerListControlID)
 				_Metro_GUIDelete($PlayerListDialog)
 				Return 0
 			Case $Save
-				If SaveNewList($PlayerListFile, $PlayerListPath & GUICtrlRead($ListNameInput) & ".txt") = True Then
-					_Metro_GUIDelete($PlayerListDialog)
-					Return 0
-				EndIf
+				SaveNewList(GUICtrlRead($ListNameInput))
 			Case $Load
-				$PlayerListFile = $PlayerListPath & _GUICtrlListBox_GetText($List, _GUICtrlListBox_GetCurSel($List)) & ".txt"
-				LoadPlayerList($PlayerListControlID)
-			Case $Open
-				ShellExecute($PlayerListPath)
+				LoadNewList(_GUICtrlListBox_GetText($List,_GUICtrlListBox_GetCurSel($List)))
 		EndSwitch
 	WEnd
 EndFunc   ;==>PlayerListDialog
 
-Func AllAvailablePlayerLists()
-	Local $aFileList = _FileListToArray($PlayerListPath, "*.txt")
+Func LoadDataToList()
+    Local $aFileList = _FileListToArray($PlayerListPath, "*.txt")
 	Local $str = ""
 
 	For $i = 1 To $aFileList[0]
 		$str &= StringTrimRight($aFileList[$i], 4) & "|"
 	Next
-	Return StringTrimRight($str, 1) ;Remove last "|"
-EndFunc   ;==>AllAvailablePlayerLists
+	Return $str
+EndFunc
+Func SaveNewList($ListName)
+	MsgBox(0, "", $ListName)
+EndFunc
 
-Func SaveNewList($TempList, $NewList)
-
-	If FileExists($NewList) Then
-		If MsgBox(4, "Save new player list", "Player list with this name (" & $NewList & ") alread exists, do you want to overwrite it?") <> 6 Then Return False
-	EndIf
-
-	FileCopy($TempList, $NewList, 1)
-	Return True
-EndFunc   ;==>SaveNewList
+Func LoadNewList($ListName)
+	MsgBox(0, "", $ListName)
+EndFunc
 
 Func AddPlayerToList($Name, $BuyNowMax, $List, $iNumber, $isSpecial, $bQuickList, $StartPrice, $BuyNowPrice, $Duration)
 	If $Name == "" Then

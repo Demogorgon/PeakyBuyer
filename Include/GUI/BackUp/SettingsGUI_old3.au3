@@ -373,7 +373,7 @@ Func RemoveAllPlayersFromList($hPlayerList)
 	_GUICtrlListBox_ResetContent($hPlayerList)
 EndFunc   ;==>RemoveAllPlayersFromList
 
-Func PlayerListDialog($PlayerListControlID)
+Func PlayerListDialog($PlayerListID)
 	Local $GUISize[2] = [250, 205]
 	Local $GUIPos[2] = [((@DesktopWidth / 2) - ($GUISize[0] / 2)), ((@DesktopHeight / 2) - ($GUISize[1] / 2))] ;Screen Center
 
@@ -387,7 +387,7 @@ Func PlayerListDialog($PlayerListControlID)
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
-	Local $ListNameInput = GUICtrlCreateInput("Enter list name", 15, 175, 170, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL), $SS_BLACKRECT)
+	Local $ListNameInput = GUICtrlCreateInput("Enter list name.", 15, 175, 170, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL), $SS_BLACKRECT)
 	_GUICtrlSetFont(-1, 11, 400, 0, "Verdana", 2)
 	GUICtrlSetColor(-1, $FontThemeColor)
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
@@ -410,13 +410,11 @@ Func PlayerListDialog($PlayerListControlID)
 				_Metro_GUIDelete($PlayerListDialog)
 				Return 0
 			Case $Save
-				If SaveNewList($PlayerListFile, $PlayerListPath & GUICtrlRead($ListNameInput) & ".txt") = True Then
-					_Metro_GUIDelete($PlayerListDialog)
-					Return 0
-				EndIf
+				FileCopy($PlayerListFile, $PlayerListPath & GUICtrlRead($ListNameInput) & ".txt", 1)
+				;SaveNewList(GUICtrlRead($ListNameInput), $PlayerListID)
 			Case $Load
 				$PlayerListFile = $PlayerListPath & _GUICtrlListBox_GetText($List, _GUICtrlListBox_GetCurSel($List)) & ".txt"
-				LoadPlayerList($PlayerListControlID)
+				;LoadNewList()
 			Case $Open
 				ShellExecute($PlayerListPath)
 		EndSwitch
@@ -430,18 +428,21 @@ Func AllAvailablePlayerLists()
 	For $i = 1 To $aFileList[0]
 		$str &= StringTrimRight($aFileList[$i], 4) & "|"
 	Next
-	Return StringTrimRight($str, 1) ;Remove last "|"
-EndFunc   ;==>AllAvailablePlayerLists
+	Return $str
+EndFunc   ;==>LoadDataToList
 
-Func SaveNewList($TempList, $NewList)
-
-	If FileExists($NewList) Then
-		If MsgBox(4, "Save new player list", "Player list with this name (" & $NewList & ") alread exists, do you want to overwrite it?") <> 6 Then Return False
-	EndIf
-
-	FileCopy($TempList, $NewList, 1)
-	Return True
+Func SaveNewList($ListName, $PlayerListID)
+	Local $count = _GUICtrlListBox_GetCount($PlayerListID)
+	_FileCreate($ListName & ".txt")
+	For $i = 0 To $count - 1
+		ConsoleWrite(_GUICtrlListBox_GetText($PlayerListID, $i) & @CRLF)
+	Next
+	MsgBox(0, "", $ListName)
 EndFunc   ;==>SaveNewList
+
+Func LoadNewList($ListName)
+	;$PlayerListFile =
+EndFunc   ;==>LoadNewList
 
 Func AddPlayerToList($Name, $BuyNowMax, $List, $iNumber, $isSpecial, $bQuickList, $StartPrice, $BuyNowPrice, $Duration)
 	If $Name == "" Then

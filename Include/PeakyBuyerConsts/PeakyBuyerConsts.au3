@@ -3,4 +3,4 @@
 Global Const $ImagesDir = @ScriptDir & "\Images\"
 Global Const $SettingsDir = @MyDocumentsDir & "\PeakyBuyer17\Settings\"
 Global Const $SettingsFile = $SettingsDir & "Settings.ini"
-Global Const $PlayerListFile = @MyDocumentsDir & "\PeakyBuyer17\PlayerList\PlayerList.txt"
+Global Const $PlayerListPath = @MyDocumentsDir & "\PeakyBuyer17\PlayerList\"

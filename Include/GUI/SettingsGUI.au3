@@ -1,3 +1,4 @@
+
 #Region PeakyBuyerSettingsGUI
 Func Settings()
 	Local $GUISize[2] = [520, 535]
@@ -21,7 +22,7 @@ Func Settings()
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
-	Global $ButtonSaveSettings = _Metro_CreateButton("Save", 10, 215, 85, 30)
+	Global $ButtonSaveSettings = _Metro_CreateButton("Save", 10, 235, 85, 30)
 
 	Local $ArrStart[3], $ArrEnd[3]
 
@@ -145,7 +146,9 @@ Func Settings()
 	GUICtrlSetBkColor(-1, "0x3d3d3d")
 	GUICtrlSetColor(-1, "0xFFFFFF")
 
-	Local $ButtonAddPlayer = _Metro_CreateButton("Add Player", 295, $GUISize[1] - 240, 150, 30)
+	Local $ButtonManagePlayerList = _Metro_CreateButton("Save/load list", 295, $GUISize[1] - 270, 150, 30)
+
+	Local $ButtonAddPlayer = _Metro_CreateButton("Add Player", 295, $GUISize[1] - 190, 150, 30)
 	Local $ButtonEditPlayer = _Metro_CreateButton("Edit Price", 295, $GUISize[1] - 150, 150, 30)
 	Local $ButtonRemovePlayer = _Metro_CreateButton("Remove", 295, $GUISize[1] - 110, 150, 30)
 	Local $ButtonRemoveAllPlayers = _Metro_CreateButton("Remove All Players", 295, $GUISize[1] - 70, 150, 30)
@@ -215,6 +218,10 @@ Func Settings()
 				SettingsSwitcher(_GUICtrlListBox_GetCurSel($ListSettings), $ArrStart, $ArrEnd, $GroupSettings, $ListPlayers, $LabelPlayersCounter)
 			Case $ButtonSaveSettings
 				SaveSettings()
+			Case $ButtonManagePlayerList
+				_GUIDisable($PeakyBuyerSettingsGUI, 0, 30)
+				PlayerListDialog($ListPlayers)
+				_GUIDisable($PeakyBuyerSettingsGUI)
 			Case $ButtonAddPlayer
 				AddPlayerToList(GUICtrlRead($InputPlayerName), GUICtrlRead($InputBuyNowMax), $ListPlayers, GUICtrlRead($ComboPickNumber), _Metro_CheckboxIsChecked($CheckboxIsSpecial), _Metro_CheckboxIsChecked($CheckboxQuickList), GUICtrlRead($InputStartPrice), GUICtrlRead($InputBuyNowPrice), _GUICtrlComboBox_GetCurSel($ComboDuration) + 1)
 				GUICtrlSetData($InputPlayerName, "")
@@ -267,6 +274,7 @@ Func LoadSettings()
 		DoLogs($SettingsFile & " does not exist.", True)
 		Return
 	EndIf
+
 	;#Hotkeys Section
 	GUICtrlSetData($SettingsInputStartHotkey, IniRead($SettingsFile, "Hotkeys", "StartHotkey", "HOME"))
 	GUICtrlSetData($SettingsInputExitHotkey, IniRead($SettingsFile, "Hotkeys", "ExitHotkey", "END"))
@@ -276,6 +284,7 @@ Func LoadSettings()
 	GUICtrlSetData($SettingsInputPeakyBuyerSpeed, IniRead($SettingsFile, "Other", "PeakyBuyerSpeed", "*1"))
 	GUICtrlSetData($SettingsInputMoseMoveSpeed, IniRead($SettingsFile, "Other", "MouseMoveSpeed", "10"))
 	GUICtrlSetData($SettingsInputAutoRelist, IniRead($SettingsFile, "Other", "AutoRelist", "0"))
+
 EndFunc   ;==>LoadSettings
 
 Func SaveSettings()
@@ -363,6 +372,76 @@ Func RemoveAllPlayersFromList($hPlayerList)
 	_FileCreate($PlayerListFile)
 	_GUICtrlListBox_ResetContent($hPlayerList)
 EndFunc   ;==>RemoveAllPlayersFromList
+
+Func PlayerListDialog($PlayerListControlID)
+	Local $GUISize[2] = [250, 205]
+	Local $GUIPos[2] = [((@DesktopWidth / 2) - ($GUISize[0] / 2)), ((@DesktopHeight / 2) - ($GUISize[1] / 2))] ;Screen Center
+
+	Local $PlayerListDialog = _Metro_CreateGUI("", $GUISize[0], $GUISize[1], $GUIPos[0], $GUIPos[1], True)
+
+	;Add control buttons
+	Local $Control_Buttons_2 = _Metro_AddControlButtons(True, False, False, False) ;CloseBtn = True, MaximizeBtn = True, MinimizeBtn = True, FullscreenBtn = True, MenuBtn = True
+
+	Local $List = GUICtrlCreateList("", 15, 35, 120, 125, $WS_BORDER, $SS_BLACKRECT)
+	GUICtrlSetData(-1, AllAvailablePlayerLists())
+	GUICtrlSetBkColor(-1, "0x3d3d3d")
+	GUICtrlSetColor(-1, "0xFFFFFF")
+
+	Local $ListNameInput = GUICtrlCreateInput("Enter list name", 15, 175, 170, 20, BitOR($ES_LEFT, $ES_AUTOHSCROLL), $SS_BLACKRECT)
+	_GUICtrlSetFont(-1, 11, 400, 0, "Verdana", 2)
+	GUICtrlSetColor(-1, $FontThemeColor)
+	GUICtrlSetBkColor(-1, "0x3d3d3d")
+	GUICtrlSetColor(-1, "0xFFFFFF")
+
+	Local $Load = _Metro_CreateButton("Load", 140, 35, 85, 30)
+	Local $Save = _Metro_CreateButton("Save", 140, 75, 85, 30)
+	Local $Open = _Metro_CreateButton("Open dir", 140, 115, 85, 30)
+
+	;Set variables for control buttons
+	Local $GUI_CLOSE_BUTTON = $Control_Buttons_2[0]
+
+	GUISetState(@SW_SHOW)
+
+	While 1
+		_Metro_HoverCheck_Loop($PlayerListDialog);This hover check has to be added to the main While loop, otherwise the hover effects won't work.
+		$nMsg = GUIGetMsg()
+		Switch $nMsg
+			Case $GUI_EVENT_CLOSE, $GUI_CLOSE_BUTTON
+				_Metro_GUIDelete($PlayerListDialog)
+				Return 0
+			Case $Save
+				If SaveNewList($PlayerListFile, $PlayerListPath & GUICtrlRead($ListNameInput) & ".txt") = True Then
+					_Metro_GUIDelete($PlayerListDialog)
+					Return 0
+				EndIf
+			Case $Load
+				$PlayerListFile = $PlayerListPath & _GUICtrlListBox_GetText($List, _GUICtrlListBox_GetCurSel($List)) & ".txt"
+				LoadPlayerList($PlayerListControlID)
+			Case $Open
+				ShellExecute($PlayerListPath)
+		EndSwitch
+	WEnd
+EndFunc   ;==>PlayerListDialog
+
+Func AllAvailablePlayerLists()
+	Local $aFileList = _FileListToArray($PlayerListPath, "*.txt")
+	Local $str = ""
+
+	For $i = 1 To $aFileList[0]
+		$str &= StringTrimRight($aFileList[$i], 4) & "|"
+	Next
+	Return StringTrimRight($str, 1) ;Remove last "|"
+EndFunc   ;==>AllAvailablePlayerLists
+
+Func SaveNewList($TempList, $NewList)
+
+	If FileExists($NewList) Then
+		If MsgBox(4, "Save new player list", "Player list with this name (" & $NewList & ") alread exists, do you want to overwrite it?") <> 6 Then Return False
+	EndIf
+
+	FileCopy($TempList, $NewList, 1)
+	Return True
+EndFunc   ;==>SaveNewList
 
 Func AddPlayerToList($Name, $BuyNowMax, $List, $iNumber, $isSpecial, $bQuickList, $StartPrice, $BuyNowPrice, $Duration)
 	If $Name == "" Then

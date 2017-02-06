@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Icon=Iconka.com-Robot-male.ico
 #AutoIt3Wrapper_Outfile_x64=PeakyBuyer.exe
 #AutoIt3Wrapper_Res_Description=PeakyBuyer
-#AutoIt3Wrapper_Res_Fileversion=1.2
+#AutoIt3Wrapper_Res_Fileversion=1.3
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_requestedExecutionLevel=requireAdministrator
@@ -24,6 +24,10 @@
 #include "Include/PeakyBuyerConsts/PeakyBuyerConsts.au3"
 #include "Include/GUI/MetroGUI_UDF.au3" ;<--- https://www.autoitscript.com/forum/files/file/365-metrogui-udf/
 #include "Include/ImageSearch2015/ImageSearch2015.au3" ; <--- https://www.autoitscript.com/forum/topic/148005-imagesearch-usage-explanation/?do=findComment&comment=1263796
+
+Global $PlayerListFile = ""
+SetDefaultPlayerList()
+
 #include "Include/GUI/MainGUI.au3"
 #include "Include/GUI/SettingsGUI.au3"
 
@@ -71,6 +75,7 @@ WEnd
 
 Func StartBuying()
 	DoLogs("=============START=============")
+	DoLogs("Current player list: " & StringTrimRight(_StringBetween($PlayerListFile, "PlayerList\", "")[0], 4))
 	InitCoords()
 	MainSearchLoop()
 EndFunc   ;==>StartBuying
@@ -459,6 +464,17 @@ Func PeakyBuyerImgSearch($ImgToFind, $startx, $starty, $endx, $endy, $maxToleran
 	EndIf
 EndFunc   ;==>PeakyBuyerImgSearch
 
+Func SetDefaultPlayerList()
+
+	Local $fname = IniRead($SettingsFile, "PlayerList", "LastUsedList", "PlayerList.txt")
+	$PlayerListFile = $PlayerListPath & $fname
+
+	If Not FileExists($PlayerListFile) Or $fname = "" Then
+		$PlayerListFile = $PlayerListPath & "PlayerList.txt"
+	EndIf
+
+EndFunc   ;==>SetDefaultPlayerList
+
 Func InitCoords()
 	DoLogs("Settingup workspace.")
 	ReadSettingsIni()
@@ -505,5 +521,6 @@ Func _EXIT()
 EndFunc   ;==>_EXIT
 
 Func OnExit()
-	DoLogs("==============EXIT==============")
+	IniWrite($SettingsFile, "PlayerList", "LastUsedList", _StringBetween($PlayerListFile, "PlayerList\", "")[0]) ;save last used player list file name.
+	DoLogs("=============EXIT==============")
 EndFunc   ;==>OnExit

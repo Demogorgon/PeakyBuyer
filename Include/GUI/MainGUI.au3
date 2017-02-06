@@ -5,6 +5,7 @@
 #include <GuiEdit.au3>
 #include <Array.au3>
 #include <File.au3>
+#include <String.au3>
 
 #Region PeakyBuyerMainGUI
 Local $GUISize[2] = [470, 295]
